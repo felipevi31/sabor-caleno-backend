@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Mail\BienvenidaUsuarioMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -23,6 +26,13 @@ class AuthController extends Controller
             'email'    => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        // Enviar correo de bienvenida de forma segura
+        try {
+            Mail::to($user->email)->send(new BienvenidaUsuarioMail($user));
+        } catch (\Exception $e) {
+            Log::error("Error al enviar correo de bienvenida: " . $e->getMessage());
+        }
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
